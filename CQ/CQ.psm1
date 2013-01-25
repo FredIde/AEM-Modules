@@ -146,11 +146,11 @@ function Add-CQPage
 		
     .EXAMPLE
 		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
-		[ps] c:\foo> Add-CQPage -title "My Title" -parentPath "/content" -template "/apps/myapp/components/homepage" -cq $cqOject
+		[ps] c:\foo> Add-CQPage -title "My Title" -parentPath "/content" -template "/apps/myapp/components/homepage" -cq $cqObject
 
 	.EXAMPLE
 		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
-		[ps] c:\foo> Add-CQPage -title "My Title" -label "myurllabel" -parentPath "/content/my-title" -template "/apps/myapp/components/contentpage" -cq $cqOject
+		[ps] c:\foo> Add-CQPage -title "My Title" -label "myurllabel" -parentPath "/content/my-title" -template "/apps/myapp/components/contentpage" -cq $cqObject
 	#>
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
@@ -206,11 +206,11 @@ function Add-CQSlingFolder
 		
     .EXAMPLE
 		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
-		[ps] c:\foo> Add-CQSlingFolder -folderPath "/apps/myapp/docroot/folder" -cq $cqOject
+		[ps] c:\foo> Add-CQSlingFolder -folderPath "/apps/myapp/docroot/folder" -cq $cqObject
 
 	.EXAMPLE
 		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
-		[ps] c:\foo> Add-CQSlingFolder -folderPath "/content/dam/myapp/newfolder" -cq $cqOject
+		[ps] c:\foo> Add-CQSlingFolder -folderPath "/content/dam/myapp/newfolder" -cq $cqObject
 	#>
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
@@ -240,6 +240,28 @@ function Add-CQSlingFolder
 
 function Add-CQTag
 {
+	<#
+    .SYNOPSIS
+    	Add a cq tag.
+    .DESCRIPTION
+    	This method creates a cq:Tag in a cq instance.
+    .PARAMETER tagTitle
+        Title of the new tag.
+    .PARAMETER tagName
+        Name of the new tag.
+    .PARAMETER description
+        Description of the new tag.
+	.PARAMETER cqObject
+        Object with the data of the cq instance.
+		
+    .EXAMPLE
+		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
+		[ps] c:\foo> Add-CQSlingFolder -tagTitle "myTag" -cq $cqObject
+
+	.EXAMPLE
+		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
+		[ps] c:\foo> Add-CQSlingFolder -tagTitle "myTag" -tagName "myTagname" -cq $cqObject
+	#>
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
 		[Parameter(Mandatory=$true)]
