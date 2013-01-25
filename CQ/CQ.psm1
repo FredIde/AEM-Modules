@@ -1,20 +1,12 @@
-<#
-.SYNOPSIS
-   Several functions for working with CQ5.4
-.DESCRIPTION
-   
-.PARAMETER <ParamName>
-   
-.EXAMPLE
-   
-#>
-Function Get-CQHost
+
+function Get-CQHost
 {
     <#
     .SYNOPSIS
-    Create a cq host object.
+    	Create a cq host object.
     .DESCRIPTION
-    You can create a cq object with several properties.
+    	You can create a cq object with several properties. This object centralizes a lot of properties and default values that
+		will be used by other functions.
     .PARAMETER cqHost
         Host of the cq instance. Default value is localhost
     .PARAMETER cqPort
@@ -24,20 +16,20 @@ Function Get-CQHost
     .PARAMETER cqHost
         Password to connect with. Default value is admin
     .EXAMPLE
-        [ps] c:\foo> Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
+        [ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
     #>
     [CmdletBinding()]
     Param(
 
         [Parameter(Mandatory=$false)]
         [String]$cqHost = "localhost",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$cqPort = "4502",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$cqUser = "admin",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$cqPassword = "admin"
     )
@@ -60,15 +52,16 @@ function ConcatData
 {
     <#
     .SYNOPSIS
-    Concat an array to a string.
+    	Concat an array to a string.
     .DESCRIPTION
-    concat an array to one single string with a specified delimiter.
+    	Concat an array to one single string with a specified delimiter.
+		This will be used to concatenate POST parameters to one string.
     .PARAMETER data
         Data array to join.
     .PARAMETER delim
         Delimiter to join the data together. Default value is &
     .EXAMPLE
-        [ps] c:\foo> $data = @("_charset_=utf-8", 
+        [ps] c:\foo> $data = @("_charset_=utf-8",
                             ":status=browser",
                             "cmd=createPage",
                             "parentPath=$parentPath",
@@ -77,13 +70,14 @@ function ConcatData
                             "template=$template"
                             )
         [ps] c:\foo> $data = ConcatData $data
-    
+		_charset_=utf-8&:status=browser&cmd=createPage&parentPath=&title=&label=&template=
+
     #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
         [array]$data,
-        
+
         [Parameter(Mandatory=$false)]
         [String]$delim = "&"
     )
@@ -92,6 +86,30 @@ function ConcatData
 
 function doCURL
 {
+	<#
+    .SYNOPSIS
+    	Does the POST request to the wcms instance.
+    .DESCRIPTION
+    	This method makes the CURL request to the wmcs instance. It need the url to POST the data and the authentication properties.
+    .PARAMETER url
+        URl to make the POST
+    .PARAMETER auth
+        Authentication information for the wcms instance. Default value is admin:admin
+    .PARAMETER data
+        Data to POST
+    .EXAMPLE
+		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
+		[ps] c:\foo> $dataValues = @("_charset_=utf-8",
+									":status=browser",
+									"cmd=createPage",
+									"parentPath=$parentPath",
+									"title=$title",
+									"label=$label",
+									"template=$template"
+									)
+    	[ps] c:\foo> $data = ConcatData $dataValues
+        [ps] c:\foo> doCURL $cqObject.wcmCommand $cqObject.auth $data
+    #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
@@ -99,7 +117,7 @@ function doCURL
 
         [Parameter(Mandatory=$true)]
         [string]$auth,
-        
+
         [Parameter(Mandatory=$true)]
         [String]$data
     )
@@ -108,25 +126,49 @@ function doCURL
 
 Function Add-CQPage
 {
+	<#
+    .SYNOPSIS
+    	Add a cq page.
+    .DESCRIPTION
+    	This method creates a new page in a cq instance.
+    .PARAMETER title
+        Title for the page.
+    .PARAMETER label
+        Label for the page.
+    .PARAMETER parentPath
+        Where should the page be stored.
+	.PARAMETER template
+		Creates the page with this template.
+	.PARAMETER cqObject
+		cqObject with the cq properties.
+		
+    .EXAMPLE
+		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
+		[ps] c:\foo> Add-CQPage -title "My Title" -parentPath "/content" -template "/apps/myapp/components/homepage" -cq $cqOject
+
+	.EXAMPLE
+		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
+		[ps] c:\foo> Add-CQPage -title "My Title" -label "myurllabel" -parentPath "/content/my-title" -template "/apps/myapp/components/contentpage" -cq $cqOject
+	#>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
         [String]$title = "",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$label = "",
-        
+
         [Parameter(Mandatory=$true)]
         [String]$parentPath = "/content",
-        
+
         [Parameter(Mandatory=$true)]
         [string]$template = "",
-        
+
         [Parameter(Mandatory=$true)]
         [alias("cq")]
         [PSObject]$cqObject
     )
-    
+
     $dataValues = @("_charset_=utf-8",
         ":status=browser",
         "cmd=createPage",
@@ -136,9 +178,9 @@ Function Add-CQPage
         "template=$template"
         )
     $data = ConcatData $dataValues
-    
-    doCURL $cqObject.wcmCommand $cqObject.auth $data 
-    
+
+    doCURL $cqObject.wcmCommand $cqObject.auth $data
+
     $page = New-Object psobject -property @{
         parentPath=$parentPath;
         title=$title;
@@ -155,21 +197,21 @@ Function Add-CQSlingFolder
 
         [Parameter(Mandatory=$true)]
         [String]$folderPath,
-        
+
         [Parameter(Mandatory=$true)]
         [alias("cq")]
         [PSObject]$cqObject
     )
     $url = $cqObject.url+"$folderPath"
-    
+
     $dataValues = @("_charset_=utf-8",
         "./jcr:primaryType=sling:OrderedFolder",
         "./jcr:content/jcr:primaryType=nt:unstructured"
         )
     $data = ConcatData $dataValues
 
-    doCURL $url $cqObject.auth $data 
-    
+    doCURL $url $cqObject.auth $data
+
     $folder = New-Object psobject -property @{
         damPath=$folderPath;
     }
@@ -182,13 +224,13 @@ Function Add-CQTag
     param (
         [Parameter(Mandatory=$true)]
         [String]$tagTitle,
-        
+
         [Parameter(Mandatory=$false)]
         [String]$tagName,
-        
+
         [Parameter(Mandatory=$false)]
         [String]$description,
-        
+
         [Parameter(Mandatory=$true)]
         [alias("cq")]
         [PSObject]$cqObject
@@ -203,8 +245,8 @@ Function Add-CQTag
         )
     $data = ConcatData $dataValues
 
-    doCURL $cqObject.tagCommand $cqObject.auth $data 
-    
+    doCURL $cqObject.tagCommand $cqObject.auth $data
+
     $tag = New-Object psobject -property @{
         title=$tagTitle;
         tag=$tagName;
@@ -244,7 +286,7 @@ ject $cqObject
     param (
         [Parameter(Mandatory=$true)]
         [String]$userID,
-        
+
         [Parameter(Mandatory=$true)]
         [String]$password,
 
@@ -253,19 +295,19 @@ ject $cqObject
 
         [Parameter(Mandatory=$false)]
         [String]$firstname = "",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$lastname = "",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$userFolder = "",
-        
+
         [Parameter(Mandatory=$true)]
         [alias("cq")]
         [PSObject]$cqObject
     )
 
-    $dataValues = @("_charset_=utf-8", 
+    $dataValues = @("_charset_=utf-8",
         ":status=browser",
         "rep:userId=${userID}",
         "rep:password=${password}",
@@ -276,7 +318,7 @@ ject $cqObject
         )
     $data = ConcatData $dataValues
 
-    doCURL $cqObject.authorizables $cqObject.auth $data 
+    doCURL $cqObject.authorizables $cqObject.auth $data
 }
 
 function Add-CQGroup
@@ -286,22 +328,22 @@ function Add-CQGroup
 
         [Parameter(Mandatory=$true)]
         [String]$groupName,
-        
+
         [Parameter(Mandatory=$false)]
         [String]$givenName = "",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$aboutMe = "",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$groupFolder = "",
-        
+
         [Parameter(Mandatory=$true)]
         [alias("cq")]
         [PSObject]$cqObject
     )
 
-    $dataValues = @("_charset_=utf-8", 
+    $dataValues = @("_charset_=utf-8",
         ":status=browser",
         "groupName=${groupName}",
         "givenName=${givenName}",
@@ -310,8 +352,8 @@ function Add-CQGroup
         )
     $data = ConcatData $dataValues
 
-    doCURL $cqObject.authorizables $cqObject.auth $data 
-    
+    doCURL $cqObject.authorizables $cqObject.auth $data
+
     $group = New-Object psobject -property @{
         groupName=${groupName} ;
         givenName=${givenName};
@@ -328,24 +370,24 @@ function Add-CQMemberToGroup
 
         [Parameter(Mandatory=$true)]
         [String]$groupPath,
-        
+
         [Parameter(Mandatory=$true)]
         [array]$memberEntries,
-        
+
         [Parameter(Mandatory=$true)]
         [alias("cq")]
         [PSObject]$cqObject
     )
-    
+
     $url = $cqObject.url+"$groupPath"
-    
-    $dataValues = @("_charset_=utf-8", 
+
+    $dataValues = @("_charset_=utf-8",
         "memberAction=memberOf"
         )
     $data = ConcatData $dataValues
     $data = $data + "&memberEntry=" + [system.String]::Join("&memberEntry=", $memberEntries)
 
-    doCURL $url $cqObject.auth $data 
+    doCURL $url $cqObject.auth $data
 }
 
 Function Add-CQRights
@@ -355,10 +397,10 @@ Function Add-CQRights
 
         [Parameter(Mandatory=$true)]
         [String]$authorizableId,
-        
+
         [Parameter(Mandatory=$true)]
         [String]$path,
-        
+
         [Parameter(Mandatory=$false)]
         [String]$read = "false",
 
@@ -367,26 +409,26 @@ Function Add-CQRights
 
         [Parameter(Mandatory=$false)]
         [String]$create = "false",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$delete = "false",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$acl_read = "false",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$acl_edit = "false",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$replicate = "false",
-        
+
         [Parameter(Mandatory=$true)]
         [alias("cq")]
         [PSObject]$cqObject
     )
 
     $rightData = @("path:$path",
-        "read:${read}", 
+        "read:${read}",
         "modify:${modify}",
         "create:${create}",
         "delete:${delete}",
@@ -395,14 +437,14 @@ Function Add-CQRights
         "replicate:${replicate}"
     )
     $changelog = ConcatData $rightData ","
-    
-    $dataValues = @("authorizableId=$authorizableId", 
+
+    $dataValues = @("authorizableId=$authorizableId",
         "changelog=$changelog"
     )
-        
+
     $data = ConcatData $dataValues
 
-    doCURL $cqObject.cqactions $cqObject.auth $data 
+    doCURL $cqObject.cqactions $cqObject.auth $data
 }
 
 Function Add-CQFullRights
@@ -412,10 +454,10 @@ Function Add-CQFullRights
 
         [Parameter(Mandatory=$true)]
         [String]$authorizableId,
-        
+
         [Parameter(Mandatory=$true)]
         [String]$path,
-        
+
         [Parameter(Mandatory=$true)]
         [alias("cq")]
         [PSObject]$cqObject
@@ -433,10 +475,10 @@ function Add-CQGroupWithRights
 
         [Parameter(Mandatory=$true)]
         [String]$groupName,
-        
+
         [Parameter(Mandatory=$false)]
         [String]$givenName = "",
-        
+
         [Parameter(Mandatory=$false)]
         [String]$aboutMe = "",
 
@@ -466,22 +508,22 @@ function Set-CQContent
 
         [Parameter(Mandatory=$true)]
         [String]$nodePath,
-        
+
         [Parameter(Mandatory=$true)]
         [String]$itemName,
-        
+
         [Parameter(Mandatory=$false)]
         [String]$itemValue,
-        
+
         [Parameter(Mandatory=$true)]
         [alias("cq")]
         [PSObject]$cqObject
     )
-    
+
     $url = $cqObject.url+"$nodePath"
-    
+
     $dataValue = @("$itemName=$itemValue" )
     $data = ConcatData $dataValue
 
-    doCURL $url $cqObject.auth $data 
+    doCURL $url $cqObject.auth $data
 }
