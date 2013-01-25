@@ -14,6 +14,8 @@ Example 2: Create a Group
 
 `[ps] c:\foo> Add-CQGroup -groupName "mygroupname" -cq $cqOject`
 
+### Help
+Some wants to help for more funcationality? Then contact me.
 
 ### disclaimer of liability
 The author does not assume liability for errors contained in or for damages arising from the use of the software.
