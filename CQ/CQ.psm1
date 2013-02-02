@@ -1,3 +1,123 @@
+Set-StrictMode -Version 2.0
+
+# -----------------------------------------------------------------------
+# Displays help usage
+# -----------------------------------------------------------------------
+function WriteUsage([string]$msg)
+{
+	$moduleNames = $CQ.ModulesToImport.Keys | Sort
+
+	if ($msg) { Write-Host $msg }
+	
+	$OFS = ','
+	Write-Host @"
+ 
+To load all CQ modules using the default CQ preferences execute: 
+
+    Import-Module CQ
+
+The nested module names are:
+
+$moduleNames
+
+"@
+}
+
+# -----------------------------------------------------------------------
+# Load nested modules selected by user
+# -----------------------------------------------------------------------
+$stopWatch = new-object System.Diagnostics.StopWatch
+. $PSScriptRoot\CQ.UserPreferences.ps1
+
+
+$keys = @($CQ.ModulesToImport.Keys)
+if ($CQ.ShowModuleLoadDetails) 
+{ 
+	Write-Host "PowerShell Community Extensions $($CQ.Version)`n"
+	$totalModuleLoadTimeMs = 0
+	$stopWatch.Reset()
+	$stopWatch.Start()
+	$keys = @($keys | Sort)
+}
+
+foreach ($key in $keys)
+{
+	if ($CQ.ShowModuleLoadDetails) 
+	{
+		$stopWatch.Reset()
+		$stopWatch.Start()
+		Write-Host " $key $(' ' * (20 - $key.length))[ " -NoNewline
+	}
+	
+	if (!$CQ.ModulesToImport.$key) 
+	{ 	
+		# Not selected for loading by user 
+		if ($CQ.ShowModuleLoadDetails) 
+		{	
+			Write-Host "Skipped" -nonew
+		}		
+	}
+	else 
+	{
+	    $subModuleBasePath = "$PSScriptRoot\Modules\{0}\CQ.{0}" -f $key
+	    
+		# Check for PSD1 first
+		$path = "$subModuleBasePath.psd1"
+		if (!(Test-Path -PathType Leaf $path)) 
+		{
+			# Assume PSM1 only
+			$path = "$subModuleBasePath.psm1"
+			if (!(Test-Path -PathType Leaf $path))
+			{
+				# Missing/invalid module
+				if ($CQ.ShowModuleLoadDetails) 
+				{
+					Write-Host "Module $path is missing ]"
+				} 
+				else 
+				{
+					Write-Warning "Module $path is missing."
+				}			
+				continue
+			}
+		}
+		
+		try 
+		{
+			# Don't complain about non-standard verbs with nested imports but
+			# we will still have one complaint for the final global scope import
+			Import-Module $path -DisableNameChecking 
+			
+			if ($CQ.ShowModuleLoadDetails) 
+			{ 
+				$stopWatch.Stop()
+				$totalModuleLoadTimeMs += $stopWatch.ElapsedMilliseconds
+				$loadTimeMsg = "Loaded in {0,4} ms" -f $stopWatch.ElapsedMilliseconds
+				Write-Host $loadTimeMsg -nonew
+			}
+		} 
+		catch 
+		{
+			# Problem in module
+			if ($CQ.ShowModuleLoadDetails) 
+			{
+				Write-Host "Module $key load error: $_" -nonew 
+			} 
+			else 
+			{
+				Write-Warning "Module $key load error: $_"
+			}
+		}		
+	} 
+	
+	if ($CQ.ShowModuleLoadDetails) 
+	{ 
+		Write-Host " ]" 
+	}
+}
+
+Export-ModuleMember -Alias * -Function * -Cmdlet *
+
 
 function Get-CQHost
 {
@@ -124,448 +244,4 @@ function doCURL
 	if ( $PSCmdlet.ShouldProcess("doCurl to $url with data $data") ) {
 		CURL -s -f -u $auth --data $data $url -D "header.txt" -o "temp.txt"
 	}
-}
-
-function Add-CQPage
-{
- 	<#
-    .SYNOPSIS
-    	Add a cq page.
-    .DESCRIPTION
-    	This method creates a new page in a cq instance.
-    .PARAMETER title
-        Title for the page.
-    .PARAMETER label
-        Label for the page.
-    .PARAMETER parentPath
-        Where should the page be stored.
-	.PARAMETER template
-		Creates the page with this template.
-	.PARAMETER cqObject
-        Object with the data of the cq instance.
-		
-    .EXAMPLE
-		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
-		[ps] c:\foo> Add-CQPage -title "My Title" -parentPath "/content" -template "/apps/myapp/components/homepage" -cq $cqObject
-
-	.EXAMPLE
-		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
-		[ps] c:\foo> Add-CQPage -title "My Title" -label "myurllabel" -parentPath "/content/my-title" -template "/apps/myapp/components/contentpage" -cq $cqObject
-	#>
-	[CmdletBinding(SupportsShouldProcess=$True)]
-	param (
-		[Parameter(Mandatory=$true)]
-		[String]$title = "",
-	
-		[Parameter(Mandatory=$false)]
-		[String]$label = "",
-	
-		[Parameter(Mandatory=$true)]
-		[String]$parentPath = "/content",
-	
-		[Parameter(Mandatory=$true)]
-		[string]$template = "",
-	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
-		[PSObject]$cqObject
-	)
-	
-	$dataValues = @("_charset_=utf-8",
-		":status=browser",
-		"cmd=createPage",
-		"parentPath=$parentPath",
-		"title=$title",
-		"label=$label",
-		"template=$template"
-	)
-	$data = ConcatData $dataValues
-	
-	doCURL $cqObject.wcmCommand $cqObject.auth $data
-	
-	$page = New-Object psobject -property @{
-		parentPath=$parentPath;
-		title=$title;
-		label=$label;
-		template=$template;
-	}
-	return $page | Select parentPath, title, label, template
-}
-
-function Add-CQSlingFolder
-{
- 	<#
-    .SYNOPSIS
-    	Add a sling folder.
-    .DESCRIPTION
-    	This method creates a sling:Folder in a cq instance.
-    .PARAMETER folderPath
-        Path to the new folder.
-	.PARAMETER cqObject
-        Object with the data of the cq instance.
-		
-    .EXAMPLE
-		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
-		[ps] c:\foo> Add-CQSlingFolder -folderPath "/apps/myapp/docroot/folder" -cq $cqObject
-
-	.EXAMPLE
-		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
-		[ps] c:\foo> Add-CQSlingFolder -folderPath "/content/dam/myapp/newfolder" -cq $cqObject
-	#>
-	[CmdletBinding(SupportsShouldProcess=$True)]
-	param (
-	
-		[Parameter(Mandatory=$true)]
-		[String]$folderPath,
-	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
-		[PSObject]$cqObject
-	)
-	$url = $cqObject.url+"$folderPath"
-	
-	$dataValues = @("_charset_=utf-8",
-		"./jcr:primaryType=sling:OrderedFolder",
-		"./jcr:content/jcr:primaryType=nt:unstructured"
-	)
-	$data = ConcatData $dataValues
-	
-	doCURL $url $cqObject.auth $data
-	
-	$folder = New-Object psobject -property @{
-		damPath=$folderPath;
-	}
-	return $folder | Select damPath
-}
-
-function Add-CQTag
-{
-	<#
-    .SYNOPSIS
-    	Add a cq tag.
-    .DESCRIPTION
-    	This method creates a cq:Tag in a cq instance.
-    .PARAMETER tagTitle
-        Title of the new tag.
-    .PARAMETER tagName
-        Name of the new tag.
-    .PARAMETER description
-        Description of the new tag.
-	.PARAMETER cqObject
-        Object with the data of the cq instance.
-		
-    .EXAMPLE
-		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
-		[ps] c:\foo> Add-CQSlingFolder -tagTitle "myTag" -cq $cqObject
-
-	.EXAMPLE
-		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
-		[ps] c:\foo> Add-CQSlingFolder -tagTitle "myTag" -tagName "myTagname" -cq $cqObject
-	#>
-	[CmdletBinding(SupportsShouldProcess=$True)]
-	param (
-		[Parameter(Mandatory=$true)]
-		[String]$tagTitle,
-	
-		[Parameter(Mandatory=$false)]
-		[String]$tagName,
-	
-		[Parameter(Mandatory=$false)]
-		[String]$description,
-	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
-		[PSObject]$cqObject
-	)
-	
-	$dataValues = @("_charset_=utf-8",
-		":status=browser",
-		"cmd=createTag",
-		"jcr:title=$tagTitle",
-		"tag=$tagName",
-		"jcr:description=$description"
-	)
-	$data = ConcatData $dataValues
-	
-	doCURL $cqObject.tagCommand $cqObject.auth $data
-	
-	$tag = New-Object psobject -property @{
-		title=$tagTitle;
-		tag=$tagName;
-		description=$description;
-	}
-	return $tag | Select title, tag, description
-}
-	
-function Add-CQUser
-{
-	<#
-	.SYNOPSIS
-		Add a user to cq.
-	.DESCRIPTION
-		Creates an user on the cq instance.
-	.PARAMETER userID
-		Users ID
-	.PARAMETER password
-		Users new password
-	.PARAMETER email
-		Users email address
-	.PARAMETER password
-		Users new password
-	.PARAMETER firstname
-		Users firstname
-	.PARAMETER lastname
-		Users lastname
-	.PARAMETER userFolder
-		Folder to store the user. 
-		E.g. test stores the user under /home/users/test
-	.PARAMETER cqObject
-		Object with the data of the cq instance.
-	.EXAMPLE
-		[ps] c:\foo> Add-CQUser -userID "test" -password "test" -email "jan.stettler@axpo.com" -givenName "GivenName" -familyName "FamilyName" -userFolder test -cqObject $cqObject
-	#>
-	[CmdletBinding(SupportsShouldProcess=$True)]
-	param (
-		[Parameter(Mandatory=$true)]
-		[String]$userID,
-	
-		[Parameter(Mandatory=$true)]
-		[String]$password,
-	
-		[Parameter(Mandatory=$true)]
-		[String]$email,
-	
-		[Parameter(Mandatory=$false)]
-		[String]$firstname = "",
-	
-		[Parameter(Mandatory=$false)]
-		[String]$lastname = "",
-	
-		[Parameter(Mandatory=$false)]
-		[String]$userFolder = "",
-	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
-		[PSObject]$cqObject
-	)
-	
-	$dataValues = @("_charset_=utf-8",
-		":status=browser",
-		"rep:userId=${userID}",
-		"rep:password=${password}",
-		"givenName=${givenName}",
-		"familyName=${familyName}",
-		"email=${email}",
-		"intermediatePath=$userFolder"
-	)
-	$data = ConcatData $dataValues
-	
-	doCURL $cqObject.authorizables $cqObject.auth $data
-}
-
-function Add-CQGroup
-{
-	[CmdletBinding(SupportsShouldProcess=$True)]
-	param (
-	
-		[Parameter(Mandatory=$true)]
-		[String]$groupName,
-	
-		[Parameter(Mandatory=$false)]
-		[String]$givenName = "",
-	
-		[Parameter(Mandatory=$false)]
-		[String]$aboutMe = "",
-	
-		[Parameter(Mandatory=$false)]
-		[String]$groupFolder = "",
-	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
-		[PSObject]$cqObject
-	)
-	
-	$dataValues = @("_charset_=utf-8",
-		":status=browser",
-		"groupName=${groupName}",
-		"givenName=${givenName}",
-		"aboutMe=${aboutMe}",
-		"intermediatePath=${groupFolder}"
-	)
-	$data = ConcatData $dataValues
-	
-	doCURL $cqObject.authorizables $cqObject.auth $data
-	
-	$group = New-Object psobject -property @{
-		groupName=${groupName} ;
-		givenName=${givenName};
-		aboutMe=${aboutMe};
-		path="/home/groups/${groupFolder}";
-	}
-	return $group | Select groupName, givenName, aboutMe, path
-}
-
-function Add-CQMemberToGroup
-{
-	[CmdletBinding(SupportsShouldProcess=$True)]
-	param (
-	
-		[Parameter(Mandatory=$true)]
-		[String]$groupPath,
-	
-		[Parameter(Mandatory=$true)]
-		[array]$memberEntries,
-	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
-		[PSObject]$cqObject
-	)
-	
-	$url = $cqObject.url+"$groupPath"
-	
-	$dataValues = @("_charset_=utf-8",
-		"memberAction=memberOf"
-	)
-	$data = ConcatData $dataValues
-	$data = $data + "&memberEntry=" + [system.String]::Join("&memberEntry=", $memberEntries)
-	
-	doCURL $url $cqObject.auth $data
-}
-
-Function Add-CQRights
-{
-	[CmdletBinding(SupportsShouldProcess=$True)]
-	param (
-	
-		[Parameter(Mandatory=$true)]
-		[String]$authorizableId,
-	
-		[Parameter(Mandatory=$true)]
-		[String]$path,
-	
-		[Parameter(Mandatory=$false)]
-		[String]$read = "false",
-	
-		[Parameter(Mandatory=$false)]
-		[String]$modify = "false",
-	
-		[Parameter(Mandatory=$false)]
-		[String]$create = "false",
-	
-		[Parameter(Mandatory=$false)]
-		[String]$delete = "false",
-	
-		[Parameter(Mandatory=$false)]
-		[String]$acl_read = "false",
-	
-		[Parameter(Mandatory=$false)]
-		[String]$acl_edit = "false",
-	
-		[Parameter(Mandatory=$false)]
-		[String]$replicate = "false",
-	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
-		[PSObject]$cqObject
-	)
-	
-	$rightData = @("path:$path",
-		"read:${read}",
-		"modify:${modify}",
-		"create:${create}",
-		"delete:${delete}",
-		"acl_read:${acl_read}",
-		"acl_edit:${acl_edit}",
-		"replicate:${replicate}"
-	)
-	$changelog = ConcatData $rightData ","
-	
-	$dataValues = @("authorizableId=$authorizableId",
-		"changelog=$changelog"
-	)
-	
-	$data = ConcatData $dataValues
-	
-	doCURL $cqObject.cqactions $cqObject.auth $data
-}
-
-Function Add-CQFullRights
-{
-	[CmdletBinding(SupportsShouldProcess=$True)]
-	param (
-	
-		[Parameter(Mandatory=$true)]
-		[String]$authorizableId,
-	
-		[Parameter(Mandatory=$true)]
-		[String]$path,
-	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
-		[PSObject]$cqObject
-	)
-	
-	Add-CQRights -authorizableId $authorizableId -path $path -read $true -modify $true -create $true -delete $true -acl_read $true -acl_edit $true -replicate $true -cqObject $cqObject
-}
-
-function Add-CQGroupWithRights
-{
-	[CmdletBinding(SupportsShouldProcess=$True)]
-	param (
-		[Parameter(Mandatory=$true)]
-		[String]$mandantName,
-	
-		[Parameter(Mandatory=$true)]
-		[String]$groupName,
-	
-		[Parameter(Mandatory=$false)]
-		[String]$givenName = "",
-	
-		[Parameter(Mandatory=$false)]
-		[String]$aboutMe = "",
-	
-		[Parameter(Mandatory=$false)]
-		[array]$memberOf = @(),
-	
-		[Parameter(Mandatory=$false)]
-		[array]$contentPaths = @(),
-	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
-		[PSObject]$cqObject
-	)
-	
-	Add-CQGroup -groupName $groupName -givenName $givenName -groupFolder ${mandantName} -cq $cqObject
-	Add-CQMemberToGroup "/home/groups/${mandantName}/$groupName" $memberOf -cq $cqObject
-	foreach ($contentPath in $contentPaths)
-	{
-		Add-CQRights -authorizableId "$groupName" -path $contentPath -read $true -cq $cqObject
-	}
-}
-
-function Set-CQContent
-{
-	[CmdletBinding(SupportsShouldProcess=$True)]
-	param (
-	
-		[Parameter(Mandatory=$true)]
-		[String]$nodePath,
-	
-		[Parameter(Mandatory=$true)]
-		[String]$itemName,
-	
-		[Parameter(Mandatory=$false)]
-		[String]$itemValue,
-	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
-		[PSObject]$cqObject
-	)
-	
-	$url = $cqObject.url+"$nodePath"
-	
-	$dataValue = @("$itemName=$itemValue" )
-	$data = ConcatData $dataValue
-	
-	doCURL $url $cqObject.auth $data
 }
