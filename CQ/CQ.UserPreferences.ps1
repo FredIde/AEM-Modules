@@ -14,7 +14,7 @@
 #
 # ---------------------------------------------------------------------------
 $CQ = @{
-    Version = 0.1
+    Version = 5.4
     
     ShowModuleLoadDetails = $true    # Display module load details during Import-Module
     
@@ -22,10 +22,10 @@ $CQ = @{
     SmtpHost = $null                  # Specify a default SMTP server.
     SmtpPort = $null                  # Specify a default port number if not specified port 25 is used.
 
-    CQHost   = "localhost"            # Specify a default CQ server.
-    CQPort   = "4502"                 # Specify a default port number if not specified port 4502 is used.
-    CQUser   = "admin"                # Specify a default CQ user.
-    CQPwd    = "admin"                # Specify a default CQ password.
+    host   = "localhost"            # Specify a default CQ server.
+    port   = "4502"                 # Specify a default port number if not specified port 4502 is used.
+    user   = "admin"                # Specify a default CQ user.
+    pwd    = "admin"                # Specify a default CQ password.
 
 	ModulesToImport = @{
         Page            = $true;

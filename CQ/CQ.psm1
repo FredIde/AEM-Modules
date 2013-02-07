@@ -33,7 +33,7 @@ $stopWatch = new-object System.Diagnostics.StopWatch
 $keys = @($CQ.ModulesToImport.Keys)
 if ($CQ.ShowModuleLoadDetails) 
 { 
-	Write-Host "PowerShell Community Extensions $($CQ.Version)`n"
+	Write-Host "PowerShell Community Extensions for Adobe CQ $($CQ.Version)`n"
 	$totalModuleLoadTimeMs = 0
 	$stopWatch.Reset()
 	$stopWatch.Start()
@@ -59,7 +59,7 @@ foreach ($key in $keys)
 	}
 	else 
 	{
-	    $subModuleBasePath = "$PSScriptRoot\Modules\{0}\CQ.{0}" -f $key
+	    $subModuleBasePath = "$PSScriptRoot\Modules$($CQ.Version)\{0}\CQ.{0}" -f $key
 	    
 		# Check for PSD1 first
 		$path = "$subModuleBasePath.psd1"
@@ -116,9 +116,6 @@ foreach ($key in $keys)
 	}
 }
 
-Export-ModuleMember -Alias * -Function * -Cmdlet *
-
-
 function Get-CQHost
 {
  <#
@@ -142,27 +139,30 @@ function Get-CQHost
 	Param(
 	
 		[Parameter(Mandatory=$false)]
-		[String]$cqHost = "localhost",
+		[String]$cqHost = $CQ.host,
 	
 		[Parameter(Mandatory=$false)]
-		[String]$cqPort = "4502",
+		[String]$cqPort = $CQ.port,
 	
 		[Parameter(Mandatory=$false)]
-		[String]$cqUser = "admin",
+		[String]$cqUser = $CQ.user,
 	
 		[Parameter(Mandatory=$false)]
-		[String]$cqPassword = "admin"
+		[String]$cqPassword = $CQ.pwd
 	)
 	$obj = New-Object PSObject -property @{
 		host=$cqHost;
 		port=$cqPort;
 		user=$cqUser;
 		password=$cqPassword;
-		url="${cqHost}:${cqPort}";
+		
+        url="${cqHost}:${cqPort}";
 		auth="${cqUser}:${cqPassword}";
+        
 		wcmCommand="${cqHost}:${cqPort}/bin/wcmcommand";
 		tagCommand="${cqHost}:${cqPort}/bin/tagcommand";
 		authorizables="${cqHost}:${cqPort}/libs/cq/security/authorizables/POST";
+        authorizablesJson="${cqHost}:${cqPort}/bin/security/authorizables.json?limit=&_charset_=utf-8&filter=";
 		cqactions="${cqHost}:${cqPort}/.cqactions.html";
 	}
 	Return $obj
@@ -245,3 +245,5 @@ function doCURL
 		CURL -s -f -u $auth --data $data $url -D "header.txt" -o "temp.txt"
 	}
 }
+
+Export-ModuleMember -Alias * -Function * -Cmdlet *
