@@ -28,26 +28,26 @@ function Add-CQUser
 	#>
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$userID,
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$password,
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$email,
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$firstname = "",
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$lastname = "",
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$userFolder = "",
 	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
+		[Parameter(Mandatory=$True)]
+		[Alias("cq")]
 		[PSObject]$cqObject
 	)
 	
@@ -70,20 +70,20 @@ function Add-CQGroup
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$groupName,
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$givenName = "",
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$aboutMe = "",
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$groupFolder = "",
 	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
+		[Parameter(Mandatory=$True)]
+		[Alias("cq")]
 		[PSObject]$cqObject
 	)
 	
@@ -112,14 +112,14 @@ function Add-CQMemberToGroup
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$groupPath,
 	
-		[Parameter(Mandatory=$true)]
-		[array]$memberEntries,
+		[Parameter(Mandatory=$True)]
+		[Array]$memberEntries,
 	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
+		[Parameter(Mandatory=$True)]
+		[Alias("cq")]
 		[PSObject]$cqObject
 	)
 	
@@ -139,14 +139,14 @@ function Set-CQMembersFromGroup
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$groupPath,
 	
-		[Parameter(Mandatory=$true)]
-		[array]$memberEntries,
+		[Parameter(Mandatory=$True)]
+		[Array]$memberEntries,
 	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
+		[Parameter(Mandatory=$True)]
+		[Alias("cq")]
 		[PSObject]$cqObject
 	)
 	
@@ -166,14 +166,14 @@ function Remove-CQMemberFromGroup
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$groupId,
 	
-		[Parameter(Mandatory=$true)]
-		[array]$memberId2Remove,
+		[Parameter(Mandatory=$True)]
+		[Array]$memberId2Remove,
 	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
+		[Parameter(Mandatory=$True)]
+		[Alias("cq")]
 		[PSObject]$cqObject
 	)
 	
@@ -207,35 +207,35 @@ function Add-CQRights
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$authorizableId,
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$path,
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$read = "false",
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$modify = "false",
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$create = "false",
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$delete = "false",
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$acl_read = "false",
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$acl_edit = "false",
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$replicate = "false",
 	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
+		[Parameter(Mandatory=$True)]
+		[Alias("cq")]
 		[PSObject]$cqObject
 	)
 	
@@ -264,44 +264,47 @@ function Add-CQFullRights
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$authorizableId,
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$path,
 	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
+		[Parameter(Mandatory=$True)]
+		[Alias("cq")]
 		[PSObject]$cqObject
 	)
 	
-	Add-CQRights -authorizableId $authorizableId -path $path -read $true -modify $true -create $true -delete $true -acl_read $true -acl_edit $true -replicate $true -cqObject $cqObject
+	Add-CQRights -authorizableId $authorizableId -path $path -read $True -modify $True -create $True -delete $True -acl_read $True -acl_edit $True -replicate $True -cqObject $cqObject
 }
 
 function Add-CQGroupWithRights
 {
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$mandantName,
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$groupName,
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$givenName = "",
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$aboutMe = "",
 	
-		[Parameter(Mandatory=$false)]
-		[array]$memberOf = @(),
+		[Parameter(Mandatory=$False)]
+		[Array]$memberOf = @(),
 	
-		[Parameter(Mandatory=$false)]
-		[array]$contentPaths = @(),
+		[Parameter(Mandatory=$False)]
+		[Array]$contentPaths = @(),
 	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
+		[Parameter(Mandatory=$False)]
+		[boolean]$addFullRight = $False,
+	
+		[Parameter(Mandatory=$True)]
+		[Alias("cq")]
 		[PSObject]$cqObject
 	)
 	
@@ -309,6 +312,11 @@ function Add-CQGroupWithRights
 	Add-CQMemberToGroup "/home/groups/${mandantName}/$groupName" $memberOf -cq $cqObject
 	foreach ($contentPath in $contentPaths)
 	{
-		Add-CQRights -authorizableId "$groupName" -path $contentPath -read $true -cq $cqObject
+		if($addFullRight)
+		{
+			Add-CQFullRights -authorizableId "$groupName" -path $contentPath -cq $cqObject
+		} else {
+			Add-CQRights -authorizableId "$groupName" -path $contentPath -read $True -cq $cqObject
+		}
 	}
 }

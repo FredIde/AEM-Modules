@@ -27,20 +27,20 @@ function Add-CQPage
 	#>
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$title = "",
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$label = "",
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$parentPath = "/content",
 	
-		[Parameter(Mandatory=$true)]
-		[string]$template = "",
+		[Parameter(Mandatory=$True)]
+		[String]$template = "",
 	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
+		[Parameter(Mandatory=$True)]
+		[Alias("cq")]
 		[PSObject]$cqObject
 	)
 	

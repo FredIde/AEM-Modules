@@ -25,17 +25,17 @@ function Add-CQTag
 	#>
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$tagTitle,
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$tagName,
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$description,
 	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
+		[Parameter(Mandatory=$True)]
+		[Alias("cq")]
 		[PSObject]$cqObject
 	)
 	

@@ -22,11 +22,11 @@ function Add-CQSlingFolder
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$folderPath,
 	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
+		[Parameter(Mandatory=$True)]
+		[Alias("cq")]
 		[PSObject]$cqObject
 	)
 	$url = $cqObject.url+"$folderPath"

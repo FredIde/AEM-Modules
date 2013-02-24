@@ -5,24 +5,23 @@ function Set-CQContent
 	[CmdletBinding(SupportsShouldProcess=$True)]
 	param (
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$nodePath,
 	
-		[Parameter(Mandatory=$true)]
+		[Parameter(Mandatory=$True)]
 		[String]$itemName,
 	
-		[Parameter(Mandatory=$false)]
+		[Parameter(Mandatory=$False)]
 		[String]$itemValue,
 	
-		[Parameter(Mandatory=$true)]
-		[alias("cq")]
+		[Parameter(Mandatory=$True)]
+		[Alias("cq")]
 		[PSObject]$cqObject
 	)
-	
 	$url = $cqObject.url+"$nodePath"
 	
 	$dataValue = @("$itemName=$itemValue" )
 	$data = ConcatData $dataValue
-	
+    
 	doCURL $url $cqObject.auth $data
 }
