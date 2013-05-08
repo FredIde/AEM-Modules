@@ -148,16 +148,23 @@ function Get-CQHost
 		[String]$cqUser = $CQ.user,
 	
 		[Parameter(Mandatory=$false)]
-		[String]$cqPassword = $CQ.pwd
+		[String]$cqPassword = $CQ.pwd,
+	
+		[Parameter(Mandatory=$false)]
+		[String]$cqWorkspace = $CQ.workspace
 	)
 	$obj = New-Object PSObject -property @{
 		host=$cqHost;
 		port=$cqPort;
 		user=$cqUser;
 		password=$cqPassword;
+		workspace=$cqWorkspace;
 		
         url="${cqHost}:${cqPort}";
 		auth="${cqUser}:${cqPassword}";
+
+        login="${cqHost}:${cqPort}/crx/login.jsp";
+        backup="${cqHost}:${cqPort}/crx/config/backup.jsp"
         
 		wcmCommand="${cqHost}:${cqPort}/bin/wcmcommand";
 		tagCommand="${cqHost}:${cqPort}/bin/tagcommand";
@@ -243,6 +250,53 @@ function doCURL
 	)
 	if ( $PSCmdlet.ShouldProcess("doCurl to $url with data $data") ) {
 		CURL -s -f -u $auth --data $data $url -D "header.txt" -o "temp.txt"
+	}
+}
+
+
+function doLogin
+{
+ 	<#
+    .SYNOPSIS
+    	Does the POST request to the wcms instance.
+    .DESCRIPTION
+    	This method makes the CURL request to the wmcs instance. It need the url to POST the data and the authentication properties.
+    .PARAMETER url
+        URl to make the POST
+    .PARAMETER auth
+        Authentication information for the wcms instance. Default value is admin:admin
+    .PARAMETER data
+        Data to POST
+    .EXAMPLE
+		[ps] c:\foo> $cqobject = Get-CQHost -cqHost "myserver" -cqPort "5000" -cqUser "john" -cqPassword "deer"
+		[ps] c:\foo> $dataValues = @("_charset_=utf-8",
+									":status=browser",
+									"cmd=createPage",
+									"parentPath=$parentPath",
+									"title=$title",
+									"label=$label",
+									"template=$template"
+									)
+    	[ps] c:\foo> $data = ConcatData $dataValues
+        [ps] c:\foo> doCURL $cqObject.wcmCommand $cqObject.auth $data
+    #>
+	[CmdletBinding(SupportsShouldProcess=$True)]
+	param (
+		[Parameter(Mandatory=$true)]
+		[PSObject]$cqObject,
+	
+		[Parameter(Mandatory=$false)]
+		[string]$user=$CQ.user,
+	
+		[Parameter(Mandatory=$false)]
+		[string]$password=$CQ.pwd,	
+        
+		[Parameter(Mandatory=$false)]
+		[string]$workspace=$CQ.workspace
+	)
+	if ( $PSCmdlet.ShouldProcess("doLogin to $cqObject.host") ) {
+        $url = $cqObject.login
+        CURL -c $CQ.loginFile -f -o $CQ.progressFile "${url}?UserId=$user&Password=$password&Workspace=$workspace"
 	}
 }
 

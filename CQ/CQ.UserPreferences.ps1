@@ -26,6 +26,10 @@ $CQ = @{
     port   = "4502"                 # Specify a default port number if not specified port 4502 is used.
     user   = "admin"                # Specify a default CQ user.
     pwd    = "admin"                # Specify a default CQ password.
+    workspace = "crx.default"       # Specify a default CQ workspace.
+    
+    loginFile = "login.txt"
+    progressFile = "progress.txt"
 
 	ModulesToImport = @{
         Page            = $true;
@@ -33,5 +37,6 @@ $CQ = @{
         Access          = $true;
         Content         = $true;
         Tag             = $true;
+        Backup          = $true;
     }
 }

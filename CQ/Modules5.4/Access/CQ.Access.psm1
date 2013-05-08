@@ -239,7 +239,7 @@ function Add-CQRights
 		[PSObject]$cqObject
 	)
 	
-	$rightData = @("path:$path",
+	$rightData = @("path:{$path}",
 		"read:${read}",
 		"modify:${modify}",
 		"create:${create}",
@@ -257,6 +257,19 @@ function Add-CQRights
 	$data = ConcatData $dataValues
 	
 	doCURL $cqObject.cqactions $cqObject.auth $data
+
+    $rights = New-Object psobject -property @{
+		authorizableId=${authorizableId};
+		path=${path};
+		read=${read};
+		modify=${modify};
+		create=${create};
+		delete=${delete};
+		acl_read=${acl_read};
+		acl_edit=${acl_edit};
+		replicate=${replicate};
+	}
+	return $rights | Select authorizableId, path, read, modify, create, delete, acl_read, acl_edit, replicate
 }
 
 function Add-CQFullRights
@@ -309,7 +322,10 @@ function Add-CQGroupWithRights
 	)
 	
 	Add-CQGroup -groupName $groupName -givenName $givenName -groupFolder ${mandantName} -cq $cqObject
-	Add-CQMemberToGroup "/home/groups/${mandantName}/$groupName" $memberOf -cq $cqObject
+	if($memberOf.count -gt 0)
+	{
+		Add-CQMemberToGroup "/home/groups/${mandantName}/$groupName" $memberOf -cq $cqObject
+	}
 	foreach ($contentPath in $contentPaths)
 	{
 		if($addFullRight)
