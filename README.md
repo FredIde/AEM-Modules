@@ -1,4 +1,4 @@
-CQ-Modules
+AEM-Modules
 ==========
 
 ### Welcome to CQ-Powershell-Modules
